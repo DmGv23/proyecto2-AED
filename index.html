@@ -1,1 +1,335 @@
+<!DOCTYPE html>
 
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>QuadTree Simulator</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!--==============================
+            PANEL IZQUIERDO
+        ==============================-->
+
+        <aside class="sidebar">
+
+            <h2>QuadTree Simulator</h2>
+
+            <hr>
+
+            <!--========================-->
+
+            <label>
+
+                Partículas
+
+            </label>
+
+            <input
+
+                id="particles"
+
+                type="range"
+
+                min="100"
+
+                max="10000"
+
+                step="100"
+
+                value="500"
+
+            >
+
+            <span id="particlesValue">
+
+                500
+
+            </span>
+
+            <br><br>
+
+            <!--========================-->
+
+            <label>
+
+                Velocidad
+
+            </label>
+
+            <input
+
+                id="speed"
+
+                type="range"
+
+                min="0.5"
+
+                max="5"
+
+                step="0.5"
+
+                value="1.5"
+
+            >
+
+            <span id="speedValue">
+
+                1.5
+
+            </span>
+
+            <br><br>
+
+            <!--========================-->
+
+            <label>
+
+                Radio
+
+            </label>
+
+            <input
+
+                id="radius"
+
+                type="range"
+
+                min="2"
+
+                max="10"
+
+                value="4"
+
+            >
+
+            <span id="radiusValue">
+
+                4
+
+            </span>
+
+            <br><br>
+
+            <!--========================-->
+
+            <label>
+
+                Capacidad QT
+
+            </label>
+
+            <input
+
+                id="capacity"
+
+                type="range"
+
+                min="1"
+
+                max="10"
+
+                value="4"
+
+            >
+
+            <span id="capacityValue">
+
+                4
+
+            </span>
+
+            <br><br>
+
+            <!--========================-->
+
+            <button id="btnUniform">
+
+                Uniforme
+
+            </button>
+
+            <button id="btnCluster">
+
+                Clusters
+
+            </button>
+
+            <button id="btnDense">
+
+                Alta Densidad
+
+            </button>
+
+            <hr>
+
+            <button id="btnBenchmark">
+
+                Ejecutar Benchmark
+
+            </button>
+
+            <button id="btnReset">
+
+                Reiniciar
+
+            </button>
+
+        </aside>
+
+        <!--==============================
+            SIMULACIÓN
+        ==============================-->
+
+        <main class="simulation">
+
+            <canvas
+
+                id="cv"
+
+                width="900"
+
+                height="600"
+
+            ></canvas>
+
+        </main>
+
+        <!--==============================
+            PANEL DERECHO
+        ==============================-->
+
+        <aside class="metrics">
+
+            <h3>Métricas</h3>
+
+            <hr>
+
+            <p>
+
+                FPS
+
+                <span id="fps">
+
+                    0
+
+                </span>
+
+            </p>
+
+            <p>
+
+                Build Time
+
+                <span id="buildTime">
+
+                    0
+
+                </span>
+
+            </p>
+
+            <p>
+
+                Query Time
+
+                <span id="queryTime">
+
+                    0
+
+                </span>
+
+            </p>
+
+            <p>
+
+                Comparaciones QT
+
+                <span id="qtComparisons">
+
+                    0
+
+                </span>
+
+            </p>
+
+            <p>
+
+                Comparaciones Brute
+
+                <span id="bruteComparisons">
+
+                    0
+
+                </span>
+
+            </p>
+
+            <p>
+
+                Candidatos
+
+                <span id="candidates">
+
+                    0
+
+                </span>
+
+            </p>
+
+            <p>
+
+                Nodos Visitados
+
+                <span id="visitedNodes">
+
+                    0
+
+                </span>
+
+            </p>
+
+            <p>
+
+                Speedup
+
+                <span id="speedup">
+
+                    0
+
+                </span>
+
+            </p>
+
+        </aside>
+
+    </div>
+
+    <script
+
+        type="module"
+
+        src="main.js"
+
+    ></script>
+
+</body>
+
+</html>
