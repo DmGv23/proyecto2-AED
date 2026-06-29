@@ -118,6 +118,26 @@ class Particle {
 
     }
 
+        }
+
+    /*
+        Calcula la distancia al cuadrado
+        hacia otra partícula.
+
+        Se utiliza para evitar calcular
+        raíces cuadradas durante la
+        detección de colisiones.
+
+        Complejidad:
+        O(1)
+    */
+    distanceSquared(other) {
+
+        const dx = this.x - other.x;
+        const dy = this.y - other.y;
+
+        return dx * dx
+
 }
 
 export default Particle;
