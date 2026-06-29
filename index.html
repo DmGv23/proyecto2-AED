@@ -1,130 +1,130 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>QuadTree Benchmark</title>
-
-    <link rel="stylesheet" href="style.css">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuadTree – Simulador de Partículas 2D</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
-    <header>
+<div id="app">
 
-        <h1>QuadTree vs Fuerza Bruta</h1>
+  <h1 id="title">QuadTree — Simulador de Partículas 2D</h1>
 
-    </header>
+  <!-- ── Canvas principal ─────────────────────────── -->
+  <canvas id="cv"></canvas>
 
-    <main>
+  <!-- ── Métricas fila 1 ──────────────────────────── -->
+  <div id="metrics">
+    <div class="metric">
+      <div class="mval" id="mfps">0</div>
+      <div class="mlbl">FPS</div>
+    </div>
+    <div class="metric">
+      <div class="mval blue" id="mbuild">0 ms</div>
+      <div class="mlbl">Construcción QT / frame</div>
+    </div>
+    <div class="metric">
+      <div class="mval green" id="mspeedup">—</div>
+      <div class="mlbl">Speedup QT vs bruta</div>
+    </div>
+  </div>
 
-        <section id="controls">
+  <!-- ── Métricas fila 2 ──────────────────────────── -->
+  <div id="metrics2">
+    <div class="metric">
+      <div class="mval" id="mbrute">0</div>
+      <div class="mlbl">Comparaciones fuerza bruta</div>
+    </div>
+    <div class="metric">
+      <div class="mval yellow" id="mqt">—</div>
+      <div class="mlbl">Comparaciones QuadTree</div>
+    </div>
+    <div class="metric">
+      <div class="mval yellow" id="mcands">—</div>
+      <div class="mlbl">Candidatos promedio / objeto</div>
+    </div>
+  </div>
 
-            <div class="control">
+  <!-- ── Controles ────────────────────────────────── -->
+  <div id="controls">
+    <div class="ctrl">
+      <label>Partículas <span id="nout">500</span></label>
+      <input type="range" id="nslider" min="50" max="10000" step="50" value="500" />
+    </div>
+    <div class="ctrl">
+      <label>Velocidad <span id="vout">1.5</span></label>
+      <input type="range" id="vslider" min="0.2" max="5" step="0.1" value="1.5" />
+    </div>
+    <div class="ctrl">
+      <label>Capacidad QT <span id="cout">4</span></label>
+      <input type="range" id="cslider" min="1" max="16" step="1" value="4" />
+    </div>
+    <div class="ctrl">
+      <label>Radio partícula <span id="rout">4</span></label>
+      <input type="range" id="rslider" min="2" max="12" step="1" value="4" />
+    </div>
+  </div>
 
-                <label>Partículas</label>
+  <!-- ── Botones ──────────────────────────────────── -->
+  <div id="btns">
+    <button id="bUniform" class="btn-dist active-uniform" onclick="setDist('uniform')">Uniforme</button>
+    <button id="bCluster" class="btn-dist"               onclick="setDist('cluster')">Clusters</button>
+    <button id="bDense"   class="btn-dist"               onclick="setDist('dense')">Alta densidad</button>
+    <div class="sep"></div>
+    <button id="bInspect" onclick="toggleInspect()">Inspeccionar región</button>
+    <button id="bReset"   onclick="resetParticles()">↺ Reiniciar</button>
+    <button id="bBench"   onclick="runBenchmark()">Benchmark ↗</button>
+  </div>
 
-                <input
-                    id="particles"
-                    type="range"
-                    min="100"
-                    max="10000"
-                    step="100"
-                    value="1000">
+  <!-- ── Hint de inspección ───────────────────────── -->
+  <div id="inspectHint">
+    <span>Clic = fijar región de consulta &nbsp;|&nbsp; Doble clic = soltar &nbsp;|&nbsp; Radio de vecindad:</span>
+    <span class="inspect-ctrl">
+      <input type="range" id="rneigh" min="10" max="200" step="5" value="40" />
+      <span id="rneighout">40 px</span>
+    </span>
+  </div>
 
-            </div>
+  <!-- ── Tabla de benchmark ───────────────────────── -->
+  <div id="benchResult">
+    <div class="btitle">
+      Benchmark — promedio de 60 frames por configuración
+      &nbsp;·&nbsp;
+      <span style="color:var(--text-muted);font-weight:400;">
+        Tamaños: 1 000 (pequeño) · 5 000 (mediano) · 10 000 (grande)
+      </span>
+    </div>
+    <table id="benchTable">
+      <thead>
+        <tr>
+          <th>N</th>
+          <th>Distribución</th>
+          <th>Build QT (ms)</th>
+          <th>Comp. bruta</th>
+          <th>Comp. QT</th>
+          <th>Speedup</th>
+          <th>Cands/obj</th>
+        </tr>
+      </thead>
+      <tbody id="benchBody"></tbody>
+    </table>
+  </div>
 
-            <div class="control">
+  <!-- ── Leyenda ──────────────────────────────────── -->
+  <div id="legend">
+    <span><span class="ldot" style="background:#4e9eff"></span>Normal</span>
+    <span><span class="ldot" style="background:#ff5f5f"></span>Colisionando</span>
+    <span><span class="ldot" style="background:#ffe066"></span>Candidato rect.</span>
+    <span><span class="ldot" style="background:#c4ffa0"></span>Vecino circular</span>
+    <span><span class="lsq" style="background:rgba(100,255,180,0.2);border:0.5px solid rgba(100,255,180,0.5)"></span>Subdivisión QT</span>
+    <span><span class="lsq" style="background:rgba(255,220,50,0.12);border:1.5px solid #ffe066"></span>Región rect.</span>
+    <span><span class="lsq" style="background:transparent;border:1.5px dashed #c4ffa0;border-radius:50%"></span>Radio vecindad</span>
+  </div>
 
-                <label>Radio</label>
+</div>
 
-                <input
-                    id="radius"
-                    type="range"
-                    min="2"
-                    max="12"
-                    value="4">
-
-            </div>
-
-            <div class="control">
-
-                <label>Velocidad</label>
-
-                <input
-                    id="speed"
-                    type="range"
-                    min="1"
-                    max="5"
-                    step="0.5"
-                    value="1.5">
-
-            </div>
-
-            <div class="control">
-
-                <label>Capacidad</label>
-
-                <input
-                    id="capacity"
-                    type="range"
-                    min="2"
-                    max="16"
-                    value="4">
-
-            </div>
-
-            <div class="control">
-
-                <label>Distribución</label>
-
-                <select id="distribution">
-
-                    <option value="uniform">Uniforme</option>
-
-                    <option value="cluster">Cluster</option>
-
-                    <option value="dense">Densa</option>
-
-                </select>
-
-            </div>
-
-            <button id="resetButton">
-
-                Reiniciar
-
-            </button>
-
-            <button onclick="runBenchmark()">
-
-                Ejecutar Benchmark
-
-            </button>
-
-        </section>
-
-        <section id="simulation">
-
-            <canvas
-                id="cv"
-                width="1200"
-                height="700">
-
-            </canvas>
-
-        </section>
-
-    </main>
-
-    <script type="module" src="main.js"></script>
-
+<script type="module" src="main.js"></script>
 </body>
-
 </html>
-        

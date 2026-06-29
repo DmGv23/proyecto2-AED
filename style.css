@@ -1,160 +1,286 @@
-/*==================================================
-  Estilos generales
-==================================================*/
+/* =====================================================
+   style.css
+   Estilos de la interfaz del simulador QuadTree.
+===================================================== */
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+:root {
+  --bg:           #0d0d14;
+  --surface-0:    #111118;
+  --surface-1:    #1a1a26;
+  --border:       rgba(255,255,255,0.07);
+  --border-strong:rgba(255,255,255,0.14);
+  --text-primary: #e8e8f0;
+  --text-secondary:#9090b0;
+  --text-muted:   #5a5a7a;
+  --radius:       10px;
+  --font-sans:    'Inter', system-ui, sans-serif;
 }
 
-body{
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-    font-family:Arial, Helvetica, sans-serif;
-
-    background:#202124;
-
-    color:white;
-
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  padding: 16px;
 }
 
-/*==================================================
-  Título
-==================================================*/
-
-header{
-
-    padding:20px;
-
-    text-align:center;
-
-    background:#2d2d2d;
-
-    border-bottom:2px solid #444;
-
+#app {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-header h1{
-
-    font-size:30px;
-
+#title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: .02em;
 }
 
-/*==================================================
-  Layout principal
-==================================================*/
-
-main{
-
-    display:flex;
-
-    flex-direction:column;
-
-    align-items:center;
-
-    gap:20px;
-
-    padding:20px;
-
+canvas {
+  display: block;
+  width: 100%;
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border);
+  background: #0a0a0f;
+  cursor: crosshair;
 }
 
-/*==================================================
-  Panel de controles
-==================================================*/
+/* ── Métricas ──────────────────────────────── */
 
-#controls{
-
-    width:95%;
-
-    display:flex;
-
-    flex-wrap:wrap;
-
-    justify-content:center;
-
-    align-items:center;
-
-    gap:15px;
-
-    padding:15px;
-
-    background:#2d2d2d;
-
-    border-radius:10px;
-
+#metrics, #metrics2 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
 }
 
-.control{
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:5px;
-
+.metric {
+  background: var(--surface-1);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  border: 0.5px solid var(--border);
 }
 
-.control label{
-
-    font-size:14px;
-
+.metric .mval {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
-.control input,
-.control select{
-
-    width:140px;
-
+.metric .mlbl {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
-/*==================================================
-  Botones
-==================================================*/
+.mval.green  { color: #6dffb0; }
+.mval.yellow { color: #ffe066; }
+.mval.blue   { color: #7ec8ff; }
 
-button{
+/* ── Controles ─────────────────────────────── */
 
-    padding:10px 20px;
-
-    border:none;
-
-    border-radius:6px;
-
-    background:#2196f3;
-
-    color:white;
-
-    cursor:pointer;
-
-    transition:0.2s;
-
+#controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
-button:hover{
-
-    background:#1976d2;
-
+.ctrl {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/*==================================================
-  Canvas
-==================================================*/
-
-#simulation{
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
+.ctrl label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  justify-content: space-between;
 }
 
-canvas{
+.ctrl label span {
+  color: var(--text-primary);
+  font-weight: 500;
+}
 
-    background:#101010;
+input[type=range] {
+  width: 100%;
+  accent-color: #4e9eff;
+}
 
-    border:2px solid #555;
+/* ── Botones ───────────────────────────────── */
 
-    border-radius:8px;
+#btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
 
+.sep {
+  width: 1px;
+  height: 28px;
+  background: var(--border-strong);
+}
+
+.btn-dist {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 13px;
+  border-radius: 20px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: transform .1s, opacity .1s;
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  border-color: var(--border-strong);
+}
+
+.btn-dist:hover  { opacity: .85; }
+.btn-dist:active { transform: scale(.96); }
+
+.active-uniform { background:#1a3a5c; color:#7ec8ff; border-color:#378ADD; }
+.active-cluster { background:#2a1f4a; color:#c4a8ff; border-color:#7F77DD; }
+.active-dense   { background:#3a1a1a; color:#ffaaaa; border-color:#D85A30; }
+
+#bInspect {
+  font-size: 12px; font-weight: 500;
+  padding: 7px 15px; border-radius: 20px;
+  cursor: pointer;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  transition: transform .1s;
+}
+
+#bInspect:active { transform: scale(.96); }
+
+#bInspect.inspect-on {
+  background: #2e2a0a;
+  color: #ffe066;
+  border-color: #BA7517;
+}
+
+#bReset {
+  font-size: 12px; font-weight: 500;
+  padding: 7px 15px; border-radius: 20px;
+  cursor: pointer;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  transition: transform .1s, background .15s;
+}
+
+#bReset:hover  { background: var(--surface-0); }
+#bReset:active { transform: scale(.96); }
+
+#bBench {
+  font-size: 12px; font-weight: 500;
+  padding: 7px 15px; border-radius: 20px;
+  cursor: pointer;
+  border: 1.5px solid #534AB7;
+  background: #2a1f4a;
+  color: #c4a8ff;
+  transition: transform .1s;
+}
+
+#bBench:active { transform: scale(.96); }
+
+/* ── Inspect hint ──────────────────────────── */
+
+#inspectHint {
+  display: none;
+  font-size: 11px;
+  color: #ffe066;
+  background: #2e2a0a;
+  border: 1px solid #BA7517;
+  border-radius: 6px;
+  padding: 7px 10px;
+  line-height: 1.6;
+}
+
+.inspect-ctrl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.inspect-ctrl input[type=range] { width: 110px; }
+
+.inspect-ctrl span {
+  color: var(--text-primary);
+  font-weight: 500;
+  min-width: 36px;
+}
+
+/* ── Benchmark table ───────────────────────── */
+
+#benchResult {
+  display: none;
+  background: var(--surface-1);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+
+#benchResult.show { display: block; }
+
+.btitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+#benchTable {
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+}
+
+#benchTable th {
+  color: var(--text-muted);
+  font-weight: 500;
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 0.5px solid var(--border);
+}
+
+#benchTable td {
+  padding: 5px 8px;
+  color: var(--text-primary);
+  border-bottom: 0.5px solid var(--border);
+}
+
+#benchTable td.green  { color: #6dffb0; }
+#benchTable td.yellow { color: #ffe066; }
+#benchTable td.blue   { color: #7ec8ff; }
+
+/* ── Leyenda ───────────────────────────────── */
+
+#legend {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ldot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+}
+
+.lsq {
+  width: 10px; height: 10px;
+  display: inline-block;
+  margin-right: 4px;
 }

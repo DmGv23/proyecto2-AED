@@ -34,6 +34,12 @@ class Particle {
         // Indica si está colisionando.
         this.colliding = false;
 
+        // Indica si es candidato de una consulta de inspección.
+        this.isRectCandidate = false;
+
+        // Indica si es vecino circular en una consulta de inspección.
+        this.isCircleCandidate = false;
+
     }
 
     /*
@@ -50,7 +56,7 @@ class Particle {
     }
 
     /*
-        Reinicia el estado de colisión.
+        Reinicia el estado de colisión y candidatura.
 
         Se ejecuta al inicio de cada frame.
 
@@ -60,6 +66,8 @@ class Particle {
     resetCollision() {
 
         this.colliding = false;
+        this.isRectCandidate = false;
+        this.isCircleCandidate = false;
 
     }
 
@@ -118,8 +126,6 @@ class Particle {
 
     }
 
-        }
-
     /*
         Calcula la distancia al cuadrado
         hacia otra partícula.
@@ -136,7 +142,9 @@ class Particle {
         const dx = this.x - other.x;
         const dy = this.y - other.y;
 
-        return dx * dx
+        return dx * dx + dy * dy;
+
+    }
 
 }
 
