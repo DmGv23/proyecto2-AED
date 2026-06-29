@@ -1,4 +1,4 @@
-// =====================================================
+    // =====================================================
 // CollisionDetector.js
 // Detecta colisiones entre partículas.
 //
@@ -10,8 +10,6 @@
 // Ambas son utilizadas durante el benchmark.
 // =====================================================
 
-import NeighborSearch from "./NeighborSearch.js";
-import { distanceSquared } from "../utils/MathUtils.js";
 
 class CollisionDetector {
 
@@ -40,15 +38,7 @@ class CollisionDetector {
                 const limit =
                     p1.radius + p2.radius;
 
-                const dist2 = distanceSquared(
-
-                    p1.x,
-                    p1.y,
-
-                    p2.x,
-                    p2.y
-
-                );
+                const dist2 = p1.distanceSquared(p2);
 
                 if(dist2 <= limit*limit){
 
@@ -87,17 +77,11 @@ class CollisionDetector {
 
         for(const particle of particles){
 
-            const candidates =
-
-                NeighborSearch.queryCircle(
-
-                    quadTree,
-
-                    particle,
-
-                    particle.radius * 2
-
-                );
+            const candidates = this.queryCircle(
+            quadTree,
+            particle,
+            particle.radius * 2
+            );
 
             totalCandidates += candidates.length;
 
@@ -118,15 +102,7 @@ class CollisionDetector {
 
                     other.radius;
 
-                const dist2 = distanceSquared(
-
-                    particle.x,
-                    particle.y,
-
-                    other.x,
-                    other.y
-
-                );
+                const dist2 = particle.distanceSquared(other);
 
                 if(dist2 <= limit*limit){
 
@@ -164,6 +140,54 @@ class CollisionDetector {
 
     }
 
+        /*
+        Busca los candidatos dentro del área
+        alrededor de una partícula.
+    */
+    static queryRectangle(quadTree, particle) {
+
+        const range = {
+            x: particle.x,
+            y: particle.y,
+            w: particle.radius * 2,
+            h: particle.radius * 2
+        };
+
+        return quadTree.queryRectangle(range);
+
+    }
+
+    /*
+        Filtra únicamente los vecinos
+        realmente cercanos.
+    */
+    static queryCircle(quadTree, particle, radius) {
+
+        const candidates = this.queryRectangle(
+            quadTree,
+            particle
+        );
+
+        const neighbors = [];
+
+        const limit = radius * radius;
+
+        for (const candidate of candidates) {
+
+            if (candidate.id === particle.id) {
+                continue;
+            }
+
+            if (particle.distanceSquared(candidate) <= limit) {
+                neighbors.push(candidate);
+            }
+
+        }
+
+        return neighbors;
+
+    }
+    
 }
 
 export default CollisionDetector;
