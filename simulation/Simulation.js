@@ -230,9 +230,13 @@ class Simulation {
     */
     setDistribution(type){
 
-        this.distribution = type;
+    this.distribution = type;
 
-    }
+    // Regenerar automáticamente
+    // las partículas con la nueva distribución.
+    this.reset();
+
+}
 
     /*
         Cambia la capacidad
@@ -240,9 +244,18 @@ class Simulation {
     */
     setCapacity(capacity){
 
-        this.capacity = capacity;
+    this.capacity = capacity;
+
+    // Si ya existen partículas,
+    // reconstruir inmediatamente el árbol.
+    if(this.particles.length > 0){
+
+        this.rebuildQuadTree();
 
     }
+
+}
+
 
     /*
         Devuelve la lista
