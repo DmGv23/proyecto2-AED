@@ -27,9 +27,8 @@ class QuadTree {
 
         // Estadísticas utilizadas durante el benchmark.
         this.stats = {
-            visitedNodes: 0,
-            totalQueries: 0
-        };
+    visitedNodes: 0
+};
 
     }
 
@@ -111,26 +110,20 @@ return (
     */
     queryRectangle(range) {
 
-        // Reiniciar estadísticas.
-        this.resetStats();
+    // Reiniciar estadísticas.
+    this.resetStats();
 
-        this.stats.totalQueries++;
+    const found = [];
 
-        const found = [];
+    this.queryRecursive(
+        this.root,
+        range,
+        found
+    );
 
-        this.queryRecursive(
+    return found;
 
-            this.root,
-
-            range,
-
-            found
-
-        );
-
-        return found;
-
-    }
+}
 
     /*
         Consulta recursiva.
@@ -201,10 +194,9 @@ return (
     */
     resetStats() {
 
-        this.stats.visitedNodes = 0;
-        this.stats.totalQueries = 0;
+    this.stats.visitedNodes = 0;
 
-    }
+}
 
     /*
         Devuelve las estadísticas actuales.
