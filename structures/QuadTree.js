@@ -2,13 +2,22 @@
 // QuadTree.js
 // Implementación del QuadTree.
 //
-// Esta estructura permite organizar partículas en un
-// espacio bidimensional para realizar consultas
-// espaciales de manera eficiente.
+// Esta estructura organiza partículas en un espacio
+// bidimensional para acelerar consultas espaciales.
+//
+// Complejidades esperadas:
+//
+// Inserción:
+// O(log n) promedio
+//
+// Consulta:
+// O(log n + k)
+//
+// Reconstrucción:
+// O(n log n)
 // =====================================================
 
 import QuadNode from "./QuadNode.js";
-import Rectangle from "./Rectangle.js";
 
 class QuadTree {
 
@@ -19,46 +28,69 @@ class QuadTree {
 
         capacity : Máximo de partículas por nodo.
     */
-    constructor(boundary, capacity) {
+    constructor(boundary, capacity){
 
-        // Nodo raíz del árbol.
-        this.root = new QuadNode(boundary, capacity);
+        // Nodo raíz.
+        this.root = new QuadNode(
+            boundary,
+            capacity
+        );
+
+        // Estadísticas utilizadas durante
+        // el benchmark.
+        this.stats = {
+
+            // Cantidad de nodos recorridos.
+            visitedNodes: 0,
+
+            // Número de consultas realizadas.
+            totalQueries: 0
+
+        };
 
     }
 
     /*
-        Inserta una partícula dentro del árbol.
+        Inserta una partícula en el árbol.
 
         Complejidad promedio:
         O(log n)
     */
-    insert(particle) {
+    insert(particle){
 
-        return this.insertRecursive(this.root, particle);
+        return this.insertRecursive(
+            this.root,
+            particle
+        );
 
     }
 
     /*
-        Inserta recursivamente una partícula.
+        Inserción recursiva.
 
-        Esta función realiza toda la lógica de
-        subdivisión del QuadTree.
+        Si el nodo supera la capacidad,
+        se subdivide automáticamente.
     */
-    insertRecursive(node, particle) {
+    insertRecursive(node, particle){
 
-        // Si la partícula no pertenece al nodo,
-        // no puede insertarse aquí.
-        if (!node.boundary.contains(particle)) {
+        // La partícula no pertenece
+        // a esta región.
+        if(
+            !node.boundary.contains(particle)
+        ){
 
             return false;
 
         }
 
-        // Si todavía hay espacio, simplemente se inserta.
-        if (
+        // Si el nodo todavía tiene espacio.
+        if(
+
             node.particles.length < node.capacity &&
+
             !node.divided
-        ) {
+
+        ){
 
             node.particles.push(particle);
 
@@ -66,64 +98,110 @@ class QuadTree {
 
         }
 
-        // Si el nodo todavía no fue dividido,
-        // se crean los cuatro hijos.
-        if (!node.divided) {
+        // Si aún no fue dividido.
+        if(!node.divided){
 
             node.subdivide();
 
         }
 
-        // Intentar insertar en alguno de los hijos.
-        return (
+        // Intentar insertar
+        // en alguno de los hijos.
+        return(
 
-            this.insertRecursive(node.northWest, particle) ||
+            this.insertRecursive(
+                node.northWest,
+                particle
+            )
 
-            this.insertRecursive(node.northEast, particle) ||
+            ||
 
-            this.insertRecursive(node.southWest, particle) ||
+            this.insertRecursive(
+                node.northEast,
+                particle
+            )
 
-            this.insertRecursive(node.southEast, particle)
+            ||
+
+            this.insertRecursive(
+                node.southWest,
+                particle
+            )
+
+            ||
+
+            this.insertRecursive(
+                node.southEast,
+                particle
+            )
 
         );
 
     }
 
     /*
-        Consulta todas las partículas contenidas
-        dentro de un rectángulo.
+        Consulta rectangular.
+
+        Devuelve todas las partículas
+        dentro de una región.
 
         Complejidad promedio:
         O(log n + k)
     */
-    queryRectangle(range) {
+    queryRectangle(range){
+
+        // Reiniciar estadísticas.
+        this.resetStats();
+
+        this.stats.totalQueries++;
 
         const found = [];
 
-        this.queryRecursive(this.root, range, found);
+        this.queryRecursive(
+
+            this.root,
+
+            range,
+
+            found
+
+        );
 
         return found;
 
     }
 
     /*
-        Recorre el árbol buscando partículas
-        dentro del área consultada.
-    */
-    queryRecursive(node, range, found) {
+        Consulta recursiva.
 
-        // Si el área consultada no intersecta
-        // este nodo, se descarta completamente.
-        if (!node.boundary.intersects(range)) {
+        Recorre únicamente
+        las regiones necesarias.
+    */
+    queryRecursive(node, range, found){
+
+        // Registrar nodo visitado.
+        this.stats.visitedNodes++;
+
+        // No existe intersección.
+        if(
+
+            !node.boundary.intersects(range)
+
+        ){
 
             return;
 
         }
 
-        // Revisar las partículas del nodo.
-        for (const particle of node.particles) {
+        // Revisar partículas
+        // almacenadas en este nodo.
+        for(const particle of node.particles){
 
-            if (range.contains(particle)) {
+            if(
+
+                range.contains(particle)
+
+            ){
 
                 found.push(particle);
 
@@ -131,52 +209,133 @@ class QuadTree {
 
         }
 
-        // Si es hoja ya terminó.
-        if (!node.divided) {
+        // Si es hoja,
+        // termina el recorrido.
+        if(
+
+            !node.divided
+
+        ){
 
             return;
 
         }
 
-        // Continuar con los hijos.
-        this.queryRecursive(node.northWest, range, found);
+        // Continuar búsqueda.
+        this.queryRecursive(
 
-        this.queryRecursive(node.northEast, range, found);
+            node.northWest,
 
-        this.queryRecursive(node.southWest, range, found);
+            range,
 
-        this.queryRecursive(node.southEast, range, found);
+            found
+
+        );
+
+        this.queryRecursive(
+
+            node.northEast,
+
+            range,
+
+            found
+
+        );
+
+        this.queryRecursive(
+
+            node.southWest,
+
+            range,
+
+            found
+
+        );
+
+        this.queryRecursive(
+
+            node.southEast,
+
+            range,
+
+            found
+
+        );
 
     }
 
     /*
-        Elimina todo el contenido del árbol.
+        Vacía completamente
+        el árbol.
 
-        Se utiliza para reconstruir el QuadTree
-        en cada frame de la simulación.
+        Complejidad:
+        O(1)
     */
-    clear(boundary, capacity) {
+    clear(boundary, capacity){
 
-        this.root = new QuadNode(boundary, capacity);
+        this.root = new QuadNode(
+
+            boundary,
+
+            capacity
+
+        );
 
     }
 
     /*
-        Reconstruye completamente el árbol
-        utilizando una nueva lista de partículas.
+        Reconstruye el árbol
+        utilizando una nueva lista
+        de partículas.
+
+        Complejidad:
+        O(n log n)
     */
-    rebuild(boundary, capacity, particles) {
+    rebuild(boundary, capacity, particles){
 
-        this.clear(boundary, capacity);
+        this.clear(
 
-        for (const particle of particles) {
+            boundary,
 
-            this.insert(particle);
+            capacity
+
+        );
+
+        for(const particle of particles){
+
+            this.insert(
+
+                particle
+
+            );
 
         }
 
     }
 
-}
+    /*
+        Reinicia las estadísticas.
 
+        Se ejecuta antes
+        de cada consulta.
+    */
+    resetStats(){
+
+        this.stats.visitedNodes = 0;
+
+        this.stats.totalQueries = 0;
+
+    }
+
+    /*
+        Devuelve las estadísticas
+        del último recorrido.
+    */
+    getStats(){
+
+        return this.stats;
+
+    }
+
+}
 export default QuadTree;
