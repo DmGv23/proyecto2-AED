@@ -1,12 +1,13 @@
 // =====================================================
 // NeighborSearch.js
-// Implementa los algoritmos de búsqueda de vecinos.
+// Realiza búsquedas espaciales utilizando el QuadTree.
 //
-// Utiliza el QuadTree para obtener únicamente los
-// candidatos cercanos a una partícula.
+// Esta clase permite buscar:
+// - Candidatos mediante un rectángulo.
+// - Vecinos reales mediante un círculo.
 //
-// Posteriormente aplica un filtro circular para
-// eliminar falsos positivos.
+// Complejidad promedio:
+// O(log n + k)
 // =====================================================
 
 import Rectangle from "../structures/Rectangle.js";
@@ -15,15 +16,14 @@ import { distanceSquared } from "../utils/MathUtils.js";
 class NeighborSearch {
 
     /*
-        Busca candidatos utilizando una consulta
-        rectangular sobre el QuadTree.
+        Devuelve todos los candidatos encontrados
+        dentro de un rectángulo.
 
         Complejidad promedio:
         O(log n + k)
     */
     static queryRectangle(quadTree, particle){
 
-        // Región rectangular alrededor de la partícula.
         const range = new Rectangle(
 
             particle.x,
@@ -41,23 +41,35 @@ class NeighborSearch {
     }
 
     /*
-        Busca vecinos reales utilizando un radio.
-
-        Primero obtiene candidatos mediante el QuadTree
-        y luego elimina aquellos fuera del círculo.
+        Devuelve únicamente los vecinos
+        que realmente están dentro
+        del radio indicado.
 
         Complejidad promedio:
         O(log n + k)
     */
-    static queryCircle(quadTree, particle, radius){
+    static queryCircle(
 
-        // Obtener candidatos rectangulares.
+        quadTree,
+
+        particle,
+
+        radius
+
+    ){
+
         const candidates =
-            this.queryRectangle(quadTree, particle);
+
+            this.queryRectangle(
+
+                quadTree,
+
+                particle
+
+            );
 
         const neighbors = [];
 
-        // Distancia máxima permitida.
         const limit = radius * radius;
 
         for(const candidate of candidates){
@@ -72,14 +84,15 @@ class NeighborSearch {
             const dist2 = distanceSquared(
 
                 particle.x,
+
                 particle.y,
 
                 candidate.x,
+
                 candidate.y
 
             );
 
-            // Solo conservar vecinos reales.
             if(dist2 <= limit){
 
                 neighbors.push(candidate);
@@ -93,21 +106,29 @@ class NeighborSearch {
     }
 
     /*
-        Devuelve todos los vecinos de una lista
-        de partículas.
+        Devuelve un Map donde cada
+        partícula está asociada
+        con sus vecinos.
 
-        Se utiliza durante los experimentos.
-
-        Complejidad aproximada:
-        O(n log n)
+        Se utiliza principalmente
+        durante el benchmark.
     */
-    static findAllNeighbors(quadTree, particles){
+    static findAllNeighbors(
+
+        quadTree,
+
+        particles
+
+    ){
 
         const result = new Map();
 
         for(const particle of particles){
 
-            const neighbors =
+            result.set(
+
+                particle.id,
+
                 this.queryCircle(
 
                     quadTree,
@@ -116,19 +137,56 @@ class NeighborSearch {
 
                     particle.radius * 2
 
-                );
-
-            result.set(
-
-                particle.id,
-
-                neighbors
+                )
 
             );
 
         }
 
         return result;
+
+    }
+
+    /*
+        Cuenta el número promedio
+        de vecinos por partícula.
+
+        Se utiliza para obtener
+        estadísticas del benchmark.
+    */
+    static averageNeighbors(
+
+        quadTree,
+
+        particles
+
+    ){
+
+        let total = 0;
+
+        for(const particle of particles){
+
+            total +=
+
+                this.queryCircle(
+
+                    quadTree,
+
+                    particle,
+
+                    particle.radius * 2
+
+                ).length;
+
+        }
+
+        if(particles.length === 0){
+
+            return 0;
+
+        }
+
+        return total / particles.length;
 
     }
 
