@@ -1,65 +1,41 @@
 //==================================================
 // Renderer.js
-// Encargado de representar visualmente la simulación.
-//
-// No realiza cálculos.
-// No modifica partículas.
-// Solo dibuja.
+// Encargado de representar visualmente
+// toda la simulación.
 //==================================================
 
-import{
+class Renderer {
 
-PARTICLE_COLOR,
-COLLISION_COLOR,
-QT_COLOR,
-INSPECT_COLOR,
-TEXT_COLOR
+    /*
+        Constructor.
+    */
+    constructor(canvas) {
 
-}from"./Colors.js";
-
-class Renderer{
-
-    constructor(camera){
-
-        this.camera=camera;
-
-        this.ctx=camera.ctx;
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d");
 
     }
 
     /*
-        Dibuja todo un frame.
+        Dibuja un frame completo.
     */
-    render(
+    render(simulation, metrics) {
 
-        simulation,
-
-        metrics,
-
-        inspect=null
-
-    ){
-
-        this.camera.clear();
-
-        this.drawQuadTree(
-
-            simulation.quadTree.root
-
+        // Limpiar canvas.
+        this.ctx.clearRect(
+            0,
+            0,
+            this.canvas.width,
+            this.canvas.height
         );
 
-        this.drawParticles(
+        // Dibujar QuadTree.
+        this.drawQuadTree(simulation.getQuadTree().root);
 
-            simulation.particles
+        // Dibujar partículas.
+        this.drawParticles(simulation.getParticles());
 
-        );
-
-        if(inspect){
-
-            this.drawInspect(inspect);
-
-        }
-
+        // Dibujar métricas.
         this.drawMetrics(metrics);
 
     }
@@ -67,37 +43,23 @@ class Renderer{
     /*
         Dibuja todas las partículas.
     */
-    drawParticles(particles){
+    drawParticles(particles) {
 
-        for(const p of particles){
+        for (const particle of particles) {
 
             this.ctx.beginPath();
 
             this.ctx.arc(
-
-                p.x,
-
-                p.y,
-
-                p.radius,
-
+                particle.x,
+                particle.y,
+                particle.radius,
                 0,
-
-                Math.PI*2
-
+                Math.PI * 2
             );
 
-            this.ctx.fillStyle=
-
-                p.colliding
-
-                ?
-
-                COLLISION_COLOR
-
-                :
-
-                PARTICLE_COLOR;
+            this.ctx.fillStyle = particle.colliding
+                ? "#ff3b30"
+                : "#3fa9f5";
 
             this.ctx.fill();
 
@@ -106,41 +68,31 @@ class Renderer{
     }
 
     /*
-        Dibuja recursivamente
-        el QuadTree.
+        Dibuja recursivamente el QuadTree.
     */
-    drawQuadTree(node){
+    drawQuadTree(node) {
 
-        if(!node){
-
+        if (!node) {
             return;
-
         }
 
-        const b=node.boundary;
+        const boundary = node.boundary;
 
-        this.ctx.strokeStyle=QT_COLOR;
+        this.ctx.strokeStyle = "#66bbff";
+        this.ctx.lineWidth = 1;
 
         this.ctx.strokeRect(
-
-            b.x-b.w,
-
-            b.y-b.h,
-
-            b.w*2,
-
-            b.h*2
-
+            boundary.x - boundary.w,
+            boundary.y - boundary.h,
+            boundary.w * 2,
+            boundary.h * 2
         );
 
-        if(node.divided){
+        if (node.divided) {
 
             this.drawQuadTree(node.northWest);
-
             this.drawQuadTree(node.northEast);
-
             this.drawQuadTree(node.southWest);
-
             this.drawQuadTree(node.southEast);
 
         }
@@ -148,133 +100,44 @@ class Renderer{
     }
 
     /*
-        Dibuja la región inspeccionada.
+        Dibuja las métricas de la simulación.
     */
-    drawInspect(region){
+    drawMetrics(metrics) {
 
-        this.ctx.strokeStyle=
+        this.ctx.fillStyle = "#ffffff";
+        this.ctx.font = "14px Arial";
 
-            INSPECT_COLOR;
+        let y = 20;
 
-        this.ctx.lineWidth=2;
+        this.ctx.fillText(`FPS: ${metrics.fps.toFixed(0)}`, 10, y);
+        y += 20;
 
-        this.ctx.strokeRect(
+        this.ctx.fillText(`Build: ${metrics.buildTime.toFixed(2)} ms`, 10, y);
+        y += 20;
 
-            region.x-region.w,
+        this.ctx.fillText(`Query: ${metrics.queryTime.toFixed(2)} ms`, 10, y);
+        y += 20;
 
-            region.y-region.h,
+        this.ctx.fillText(`QT Comparisons: ${metrics.qtComparisons}`, 10, y);
+        y += 20;
 
-            region.w*2,
+        this.ctx.fillText(`Brute Comparisons: ${metrics.bruteComparisons}`, 10, y);
+        y += 20;
 
-            region.h*2
-
-        );
-
-    }
-
-    /*
-        Dibuja las métricas.
-    */
-    drawMetrics(metrics){
-
-        this.ctx.fillStyle=TEXT_COLOR;
-
-        this.ctx.font="14px Arial";
-
-        let y=20;
+        this.ctx.fillText(`Visited Nodes: ${metrics.visitedNodes}`, 10, y);
+        y += 20;
 
         this.ctx.fillText(
-
-            `FPS: ${metrics.fps.toFixed(0)}`,
-
-            10,
-
-            y
-
-        );
-
-        y+=20;
-
-        this.ctx.fillText(
-
-            `Build: ${metrics.buildTime.toFixed(2)} ms`,
-
-            10,
-
-            y
-
-        );
-
-        y+=20;
-
-        this.ctx.fillText(
-
-            `Query: ${metrics.queryTime.toFixed(2)} ms`,
-
-            10,
-
-            y
-
-        );
-
-        y+=20;
-
-        this.ctx.fillText(
-
-            `QT Comparisons: ${metrics.qtComparisons}`,
-
-            10,
-
-            y
-
-        );
-
-        y+=20;
-
-        this.ctx.fillText(
-
-            `Brute Comparisons: ${metrics.bruteComparisons}`,
-
-            10,
-
-            y
-
-        );
-
-        y+=20;
-
-        this.ctx.fillText(
-
-            `Visited Nodes: ${metrics.visitedNodes}`,
-
-            10,
-
-            y
-
-        );
-
-        y+=20;
-
-        this.ctx.fillText(
-
             `Candidates: ${metrics.averageCandidates.toFixed(2)}`,
-
             10,
-
             y
-
         );
-
-        y+=20;
+        y += 20;
 
         this.ctx.fillText(
-
             `Speedup: ${metrics.speedup.toFixed(2)}x`,
-
             10,
-
             y
-
         );
 
     }
