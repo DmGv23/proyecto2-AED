@@ -9,7 +9,7 @@
 //
 // Ambas son utilizadas durante el benchmark.
 // =====================================================
-
+import Rectangle from "../structures/Rectangle.js";
 
 class CollisionDetector {
 
@@ -146,16 +146,16 @@ class CollisionDetector {
     */
     static queryRectangle(quadTree, particle) {
 
-        const range = {
-            x: particle.x,
-            y: particle.y,
-            w: particle.radius * 2,
-            h: particle.radius * 2
-        };
+    const range = new Rectangle(
+        particle.x,
+        particle.y,
+        particle.radius * 2,
+        particle.radius * 2
+    );
 
-        return quadTree.queryRectangle(range);
+    return quadTree.queryRectangle(range);
 
-    }
+}
 
     /*
         Filtra únicamente los vecinos
