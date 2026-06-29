@@ -1,84 +1,66 @@
-// =====================================================
+//==================================================
 // Renderer.js
-// Responsable de dibujar toda la simulación.
+// Encargado de representar visualmente la simulación.
 //
-// NO realiza cálculos.
-// NO detecta colisiones.
-// NO construye el QuadTree.
-//
-// Únicamente representa visualmente el estado
-// actual de la simulación.
-// =====================================================
+// No realiza cálculos.
+// No modifica partículas.
+// Solo dibuja.
+//==================================================
+
+import{
+
+PARTICLE_COLOR,
+COLLISION_COLOR,
+QT_COLOR,
+INSPECT_COLOR,
+TEXT_COLOR
+
+}from"./Colors.js";
 
 class Renderer{
 
-    /*
-        Constructor.
-
-        camera : objeto Camera que administra
-        el canvas.
-    */
     constructor(camera){
 
-        // Cámara utilizada para dibujar.
-        this.camera = camera;
+        this.camera=camera;
 
-        // Contexto gráfico.
-        this.ctx = camera.ctx;
+        this.ctx=camera.ctx;
 
     }
 
     /*
-        Función principal de dibujo.
-
-        Se ejecuta una vez por frame.
+        Dibuja todo un frame.
     */
     render(
 
-        particles,
-
-        quadTree,
+        simulation,
 
         metrics,
 
-        inspectData = null
+        inspect=null
 
     ){
 
-        // Limpiar pantalla.
         this.camera.clear();
 
-        // Dibujar subdivisiones.
         this.drawQuadTree(
 
-            quadTree.root
+            simulation.quadTree.root
 
         );
 
-        // Dibujar partículas.
         this.drawParticles(
 
-            particles
+            simulation.particles
 
         );
 
-        // Dibujar modo inspección.
-        if(inspectData){
+        if(inspect){
 
-            this.drawInspect(
-
-                inspectData
-
-            );
+            this.drawInspect(inspect);
 
         }
 
-        // Dibujar métricas.
-        this.drawMetrics(
-
-            metrics
-
-        );
+        this.drawMetrics(metrics);
 
     }
 
@@ -87,17 +69,17 @@ class Renderer{
     */
     drawParticles(particles){
 
-        for(const particle of particles){
+        for(const p of particles){
 
             this.ctx.beginPath();
 
             this.ctx.arc(
 
-                particle.x,
+                p.x,
 
-                particle.y,
+                p.y,
 
-                particle.radius,
+                p.radius,
 
                 0,
 
@@ -105,24 +87,17 @@ class Renderer{
 
             );
 
-            // Color según colisión.
-            if(
+            this.ctx.fillStyle=
 
-                particle.colliding
+                p.colliding
 
-            ){
+                ?
 
-                this.ctx.fillStyle =
-                    "#ff5f5f";
+                COLLISION_COLOR
 
-            }
+                :
 
-            else{
-
-                this.ctx.fillStyle =
-                    "#4e9eff";
-
-            }
+                PARTICLE_COLOR;
 
             this.ctx.fill();
 
@@ -132,7 +107,7 @@ class Renderer{
 
     /*
         Dibuja recursivamente
-        todos los nodos del QuadTree.
+        el QuadTree.
     */
     drawQuadTree(node){
 
@@ -142,12 +117,9 @@ class Renderer{
 
         }
 
-        const b = node.boundary;
+        const b=node.boundary;
 
-        this.ctx.strokeStyle =
-            "rgba(100,255,180,0.25)";
-
-        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle=QT_COLOR;
 
         this.ctx.strokeRect(
 
@@ -163,71 +135,53 @@ class Renderer{
 
         if(node.divided){
 
-            this.drawQuadTree(
+            this.drawQuadTree(node.northWest);
 
-                node.northWest
+            this.drawQuadTree(node.northEast);
 
-            );
+            this.drawQuadTree(node.southWest);
 
-            this.drawQuadTree(
-
-                node.northEast
-
-            );
-
-            this.drawQuadTree(
-
-                node.southWest
-
-            );
-
-            this.drawQuadTree(
-
-                node.southEast
-
-            );
+            this.drawQuadTree(node.southEast);
 
         }
 
     }
 
     /*
-        Dibuja la región
-        actualmente inspeccionada.
+        Dibuja la región inspeccionada.
     */
-    drawInspect(data){
+    drawInspect(region){
 
-        this.ctx.strokeStyle =
-            "#ffe066";
+        this.ctx.strokeStyle=
 
-        this.ctx.lineWidth = 2;
+            INSPECT_COLOR;
+
+        this.ctx.lineWidth=2;
 
         this.ctx.strokeRect(
 
-            data.x-data.w,
+            region.x-region.w,
 
-            data.y-data.h,
+            region.y-region.h,
 
-            data.w*2,
+            region.w*2,
 
-            data.h*2
+            region.h*2
 
         );
 
     }
 
-
     /*
-        Dibuja las métricas
-        principales sobre el canvas.
+        Dibuja las métricas.
     */
     drawMetrics(metrics){
 
-        this.ctx.fillStyle =
-            "white";
+        this.ctx.fillStyle=TEXT_COLOR;
 
-        this.ctx.font =
-            "14px Arial";
+        this.ctx.font="14px Arial";
+
+        let y=20;
 
         this.ctx.fillText(
 
@@ -235,9 +189,11 @@ class Renderer{
 
             10,
 
-            20
+            y
 
         );
+
+        y+=20;
 
         this.ctx.fillText(
 
@@ -245,9 +201,23 @@ class Renderer{
 
             10,
 
-            40
+            y
 
         );
+
+        y+=20;
+
+        this.ctx.fillText(
+
+            `Query: ${metrics.queryTime.toFixed(2)} ms`,
+
+            10,
+
+            y
+
+        );
+
+        y+=20;
 
         this.ctx.fillText(
 
@@ -255,9 +225,11 @@ class Renderer{
 
             10,
 
-            60
+            y
 
         );
+
+        y+=20;
 
         this.ctx.fillText(
 
@@ -265,9 +237,11 @@ class Renderer{
 
             10,
 
-            80
+            y
 
         );
+
+        y+=20;
 
         this.ctx.fillText(
 
@@ -275,9 +249,11 @@ class Renderer{
 
             10,
 
-            100
+            y
 
         );
+
+        y+=20;
 
         this.ctx.fillText(
 
@@ -285,17 +261,19 @@ class Renderer{
 
             10,
 
-            120
+            y
 
         );
 
+        y+=20;
+
         this.ctx.fillText(
 
-            `Speedup: ${metrics.speedup.toFixed(1)}x`,
+            `Speedup: ${metrics.speedup.toFixed(2)}x`,
 
             10,
 
-            140
+            y
 
         );
 
