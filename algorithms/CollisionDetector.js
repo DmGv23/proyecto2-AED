@@ -1,35 +1,33 @@
 // =====================================================
-// CollisionDetection.js
-// Implementa los algoritmos de detección de colisiones.
+// CollisionDetector.js
+// Detecta colisiones entre partículas.
 //
-// Se comparan dos enfoques:
+// Implementa dos estrategias:
 //
-// 1. Fuerza Bruta (O(n²))
-// 2. QuadTree (Optimizado)
+// 1. Fuerza Bruta
+// 2. QuadTree
 //
-// Este archivo es utilizado durante los experimentos
-// para demostrar la mejora del QuadTree.
+// Ambas son utilizadas durante el benchmark.
 // =====================================================
 
-import Rectangle from "../structures/Rectangle.js";
+import NeighborSearch from "./NeighborSearch.js";
 import { distanceSquared } from "../utils/MathUtils.js";
 
-class CollisionDetection {
+class CollisionDetector {
 
     /*
-        Detecta colisiones utilizando fuerza bruta.
-
-        Compara cada partícula contra todas las demás.
+        Detecta colisiones mediante fuerza bruta.
 
         Complejidad:
         O(n²)
     */
-    static detectBruteForce(particles){
+    static detectBruteForce(
+        particles,
+        markCollision = true
+    ){
 
-        // Número de comparaciones realizadas.
         let comparisons = 0;
 
-        // Comparar todas contra todas.
         for(let i=0;i<particles.length;i++){
 
             for(let j=i+1;j<particles.length;j++){
@@ -39,7 +37,9 @@ class CollisionDetection {
                 const p1 = particles[i];
                 const p2 = particles[j];
 
-                // Distancia entre ambas partículas.
+                const limit =
+                    p1.radius + p2.radius;
+
                 const dist2 = distanceSquared(
 
                     p1.x,
@@ -50,13 +50,14 @@ class CollisionDetection {
 
                 );
 
-                // Distancia mínima para colisionar.
-                const limit = p1.radius + p2.radius;
-
                 if(dist2 <= limit*limit){
 
-                    p1.setCollision();
-                    p2.setCollision();
+                    if(markCollision){
+
+                        p1.setCollision();
+                        p2.setCollision();
+
+                    }
 
                 }
 
@@ -71,39 +72,35 @@ class CollisionDetection {
     /*
         Detecta colisiones utilizando QuadTree.
 
-        Solo compara partículas cercanas.
-
         Complejidad promedio:
         O(n log n)
     */
-    static detectQuadTree(quadTree, particles){
+    static detectQuadTree(
+        quadTree,
+        particles,
+        markCollision = true
+    ){
 
         let comparisons = 0;
 
         let totalCandidates = 0;
 
-        // Revisar cada partícula.
         for(const particle of particles){
 
-            // Región donde buscar vecinos.
-            const range = new Rectangle(
+            const candidates =
 
-                particle.x,
+                NeighborSearch.queryCircle(
 
-                particle.y,
+                    quadTree,
 
-                particle.radius * 2,
+                    particle,
 
-                particle.radius * 2
+                    particle.radius * 2
 
-            );
-
-            // Obtener candidatos del QuadTree.
-            const candidates = quadTree.queryRectangle(range);
+                );
 
             totalCandidates += candidates.length;
 
-            // Comparar únicamente candidatos.
             for(const other of candidates){
 
                 // Evita comparar dos veces.
@@ -115,6 +112,12 @@ class CollisionDetection {
 
                 comparisons++;
 
+                const limit =
+
+                    particle.radius +
+
+                    other.radius;
+
                 const dist2 = distanceSquared(
 
                     particle.x,
@@ -125,12 +128,15 @@ class CollisionDetection {
 
                 );
 
-                const limit = particle.radius + other.radius;
-
                 if(dist2 <= limit*limit){
 
-                    particle.setCollision();
-                    other.setCollision();
+                    if(markCollision){
+
+                        particle.setCollision();
+
+                        other.setCollision();
+
+                    }
 
                 }
 
@@ -143,7 +149,16 @@ class CollisionDetection {
             comparisons,
 
             averageCandidates:
-                totalCandidates / particles.length
+
+                totalCandidates /
+
+                particles.length,
+
+            visitedNodes:
+
+                quadTree.getStats()
+
+                    .visitedNodes
 
         };
 
@@ -151,4 +166,4 @@ class CollisionDetection {
 
 }
 
-export default CollisionDetection;
+export default CollisionDetector;
