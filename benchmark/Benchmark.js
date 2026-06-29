@@ -9,7 +9,7 @@
 // Únicamente calcula y almacena métricas.
 // =====================================================
 
-import CollisionDetection from "../algorithms/CollisionDetection.js";
+import CollisionDetector from "../algorithms/CollisionDetector.js";
 
 class Benchmark {
 
