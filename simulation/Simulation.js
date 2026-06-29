@@ -2,11 +2,11 @@
 // Simulation.js
 // Controla toda la simulación.
 //
-// Se encarga de:
+// Responsabilidades:
 // - Crear partículas.
 // - Actualizar posiciones.
 // - Reconstruir el QuadTree.
-// - Reiniciar la simulación.
+// - Mantener la configuración actual.
 // =====================================================
 
 import Particle from "./Particle.js";
@@ -29,33 +29,46 @@ import {
 class Simulation {
 
     /*
-        Constructor de la simulación.
+        Constructor.
     */
     constructor() {
 
         // Lista de partículas.
         this.particles = [];
 
+        // QuadTree actual.
+        this.quadTree = null;
+
         // Capacidad máxima por nodo.
         this.capacity = DEFAULT_CAPACITY;
 
-        // Distribución inicial.
+        // Distribución utilizada.
         this.distribution = "uniform";
 
-        // QuadTree utilizado en el frame actual.
-        this.quadTree = null;
+        // Configuración actual.
+        this.totalParticles = 0;
+        this.radius = 4;
+        this.speed = 1.5;
+
+        // Tiempo empleado al construir el QuadTree.
+        this.buildTime = 0;
 
     }
 
     /*
-        Genera todas las partículas.
+        Genera un nuevo conjunto de partículas.
 
         Complejidad:
         O(n)
     */
-    createParticles(total, radius, speed) {
+    createParticles(total, radius, speed){
 
-        // Vaciar lista anterior.
+        // Guardar configuración actual.
+        this.totalParticles = total;
+        this.radius = radius;
+        this.speed = speed;
+
+        // Eliminar partículas anteriores.
         this.particles = [];
 
         for(let i=0;i<total;i++){
@@ -65,22 +78,27 @@ class Simulation {
             switch(this.distribution){
 
                 case "cluster":
+
                     position = generateCluster(
                         WIDTH,
                         HEIGHT,
                         radius
                     );
+
                     break;
 
                 case "dense":
+
                     position = generateDense(
                         WIDTH,
                         HEIGHT,
                         radius
                     );
+
                     break;
 
                 default:
+
                     position = generateUniform(
                         WIDTH,
                         HEIGHT,
@@ -92,24 +110,25 @@ class Simulation {
             // Dirección aleatoria.
             const angle = Math.random()*Math.PI*2;
 
-            // Crear partícula.
-            const particle = new Particle(
+            this.particles.push(
 
-                i,
+                new Particle(
 
-                position.x,
+                    i,
 
-                position.y,
+                    position.x,
 
-                Math.cos(angle)*speed,
+                    position.y,
 
-                Math.sin(angle)*speed,
+                    Math.cos(angle)*speed,
 
-                radius
+                    Math.sin(angle)*speed,
+
+                    radius
+
+                )
 
             );
-
-            this.particles.push(particle);
 
         }
 
@@ -121,20 +140,20 @@ class Simulation {
         Complejidad:
         O(n)
     */
-    update() {
+    update(){
 
         for(const particle of this.particles){
 
-            // Reiniciar colisión.
             particle.resetCollision();
 
-            // Actualizar posición.
             particle.move();
 
-            // Rebotar en los bordes.
             particle.bounce(
+
                 WIDTH,
+
                 HEIGHT
+
             );
 
         }
@@ -145,10 +164,12 @@ class Simulation {
         Reconstruye completamente
         el QuadTree.
 
-        Complejidad:
+        Complejidad aproximada:
         O(n log n)
     */
     rebuildQuadTree(){
+
+        const start = performance.now();
 
         const boundary = new Rectangle(
 
@@ -170,18 +191,42 @@ class Simulation {
 
         );
 
-        // Insertar todas las partículas.
         for(const particle of this.particles){
 
-            this.quadTree.insert(particle);
+            this.quadTree.insert(
+
+                particle
+
+            );
 
         }
+
+        this.buildTime =
+
+            performance.now() - start;
 
     }
 
     /*
-        Cambia la distribución
-        utilizada para generar partículas.
+        Reinicia completamente
+        la simulación.
+    */
+    reset(){
+
+        this.createParticles(
+
+            this.totalParticles,
+
+            this.radius,
+
+            this.speed
+
+        );
+
+    }
+
+    /*
+        Cambia la distribución.
     */
     setDistribution(type){
 
@@ -191,11 +236,40 @@ class Simulation {
 
     /*
         Cambia la capacidad
-        máxima del QuadTree.
+        del QuadTree.
     */
     setCapacity(capacity){
 
         this.capacity = capacity;
+
+    }
+
+    /*
+        Devuelve la lista
+        de partículas.
+    */
+    getParticles(){
+
+        return this.particles;
+
+    }
+
+    /*
+        Devuelve el QuadTree.
+    */
+    getQuadTree(){
+
+        return this.quadTree;
+
+    }
+
+    /*
+        Devuelve el tiempo
+        de construcción.
+    */
+    getBuildTime(){
+
+        return this.buildTime;
 
     }
 
