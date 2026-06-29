@@ -1,13 +1,10 @@
-// =====================================================
+//==================================================
 // Benchmark.js
 // Ejecuta los experimentos del proyecto.
 //
 // Compara el rendimiento del QuadTree contra
-// la solución de fuerza bruta.
-//
-// Este módulo NO dibuja resultados.
-// Únicamente calcula y almacena métricas.
-// =====================================================
+// la fuerza bruta.
+//==================================================
 
 import CollisionDetector from "../algorithms/CollisionDetector.js";
 
@@ -16,141 +13,112 @@ class Benchmark {
     /*
         Constructor.
     */
-    constructor(metrics){
+    constructor() {
 
-        // Objeto donde se almacenan
-        // todas las métricas.
-        this.metrics = metrics;
-
-        // Resultados obtenidos.
         this.results = [];
 
     }
 
     /*
-        Ejecuta un benchmark para un
-        tamaño determinado.
-
-        Complejidad aproximada:
-        O(n log n)
+        Ejecuta un benchmark.
     */
-    run(simulation){
+    run(simulation) {
 
-        // Reiniciar métricas.
-        this.metrics.reset();
+        const metrics = {};
 
-        //------------------------------------------------
-        // Tiempo de construcción del QuadTree.
-        //------------------------------------------------
+        //----------------------------------
+        // Construcción del QuadTree
+        //----------------------------------
 
         simulation.rebuildQuadTree();
 
-        this.metrics.buildTime =
-            simulation.getBuildTime();
+        metrics.buildTime = simulation.getBuildTime();
 
-        //------------------------------------------------
-        // Detección usando QuadTree.
-        //------------------------------------------------
+        //----------------------------------
+        // QuadTree
+        //----------------------------------
 
-        const startQT = performance.now();
+        const startQuery = performance.now();
 
-        const qtResult =
-            CollisionDetector.detectQuadTree(
+        const qtResult = CollisionDetector.detectQuadTree(
 
-                simulation.quadTree,
+            simulation.getQuadTree(),
 
-                simulation.particles
+            simulation.getParticles(),
 
-            );
+            false
 
-        this.metrics.queryTime =
-            performance.now() - startQT;
+        );
 
-        this.metrics.qtComparisons =
-            qtResult.comparisons;
+        metrics.queryTime = performance.now() - startQuery;
 
-        this.metrics.averageCandidates =
-            qtResult.averageCandidates;
+        metrics.qtComparisons = qtResult.comparisons;
+        metrics.averageCandidates = qtResult.averageCandidates;
+        metrics.visitedNodes = qtResult.visitedNodes;
 
-        this.metrics.visitedNodes =
-            qtResult.visitedNodes;
+        //----------------------------------
+        // Fuerza Bruta
+        //----------------------------------
 
-        //------------------------------------------------
-        // Fuerza Bruta.
-        //------------------------------------------------
+        metrics.bruteComparisons =
 
-        this.metrics.bruteComparisons =
             CollisionDetector.detectBruteForce(
 
-                simulation.particles
+                simulation.getParticles(),
+
+                false
 
             );
 
-        //------------------------------------------------
-        // Calcular Speedup.
-        //------------------------------------------------
+        //----------------------------------
+        // Speedup
+        //----------------------------------
 
-        this.metrics.calculateSpeedup();
+        metrics.speedup =
 
-        //------------------------------------------------
-        // Guardar resultado.
-        //------------------------------------------------
+            metrics.bruteComparisons /
+
+            Math.max(metrics.qtComparisons, 1);
+
+            //----------------------------------
+        // Guardar resultado
+        //----------------------------------
 
         this.results.push({
 
-            particles:
+            particles: simulation.getParticles().length,
 
-                simulation.particles.length,
+            buildTime: metrics.buildTime,
 
-            buildTime:
+            queryTime: metrics.queryTime,
 
-                this.metrics.buildTime,
+            bruteComparisons: metrics.bruteComparisons,
 
-            queryTime:
+            qtComparisons: metrics.qtComparisons,
 
-                this.metrics.queryTime,
+            visitedNodes: metrics.visitedNodes,
 
-            bruteComparisons:
+            averageCandidates: metrics.averageCandidates,
 
-                this.metrics.bruteComparisons,
-
-            qtComparisons:
-
-                this.metrics.qtComparisons,
-
-            visitedNodes:
-
-                this.metrics.visitedNodes,
-
-            averageCandidates:
-
-                this.metrics.averageCandidates,
-
-            speedup:
-
-                this.metrics.speedup
+            speedup: metrics.speedup
 
         });
 
     }
 
     /*
-        Devuelve todos los resultados
-        obtenidos hasta el momento.
+        Devuelve todos los resultados.
     */
-    getResults(){
+    getResults() {
 
         return this.results;
 
     }
 
     /*
-        Borra los resultados anteriores.
-
-        Se utiliza antes de iniciar
-        un nuevo benchmark.
+        Elimina resultados anteriores.
     */
-    clear(){
+    clear() {
 
         this.results = [];
 
