@@ -55,7 +55,7 @@ class Benchmark {
         const startQT = performance.now();
 
         const qtResult =
-            CollisionDetection.detectQuadTree(
+            CollisionDetector.detectQuadTree(
 
                 simulation.quadTree,
 
@@ -80,7 +80,7 @@ class Benchmark {
         //------------------------------------------------
 
         this.metrics.bruteComparisons =
-            CollisionDetection.detectBruteForce(
+            CollisionDetector.detectBruteForce(
 
                 simulation.particles
 
